@@ -1,20 +1,34 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# TG365 - Professional Analysis Hub
 
-# Run and deploy your AI Studio app
+A professional platform for problem analysis using management and quality tools like Fishbone, FMEA, DMAIC, and SWOT.
 
-This contains everything you need to run your app locally.
+## Features
 
-View your app in AI Studio: https://ai.studio/apps/c31a7d13-1462-4b50-b53b-2a48771bb7a9
+- **Fishbone Diagram**: Visualize cause-and-effect relationships.
+- **FMEA (Failure Mode and Effects Analysis)**: Identify and prioritize potential failures.
+- **DMAIC (Define, Measure, Analyze, Improve, Control)**: Structured problem-solving methodology.
+- **SWOT Analysis**: Evaluate Strengths, Weaknesses, Opportunities, and Threats.
+- **PDCA (Plan-Do-Check-Act)**: Continuous improvement cycle.
+- **5 Whys**: Root cause analysis.
+- **Document Analysis**: Analyze PDF, DOCX, and XLSX files using AI.
 
-## Run Locally
+## Deployment on Vercel
 
-**Prerequisites:**  Node.js
+1. Push this repository to GitHub.
+2. Connect your GitHub repository to Vercel.
+3. Add the following environment variable in Vercel:
+   - `GEMINI_API_KEY`: Your Google Gemini API Key.
+4. Vercel will automatically detect the Vite configuration and deploy the app.
 
+## Local Development
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+1. Clone the repository.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Create a `.env` file and add your `GEMINI_API_KEY`.
+4. Run the development server:
+   ```bash
+   npm run dev
+   ```
