@@ -668,13 +668,11 @@ export default function App() {
   const handleAnalysis = async (tool: ToolType, fileName?: string, customInput?: string) => {
     const analysisInput = customInput || input;
     if (!analysisInput.trim()) return;
-    setIsAnalyzing(true);
     
-    if (tool === 'document_analysis') {
-      setActiveTab('analysis');
-    } else {
-      setActiveTab('analysis');
-    }
+    setIsAnalyzing(true);
+    const toastId = toast.loading(language === 'en' ? 'Analyzing problem...' : 'جاري تحليل المشكلة...');
+    
+    setActiveTab('analysis');
 
     try {
       const res = await performAnalysis(tool, analysisInput, language, projectSettings);
@@ -691,8 +689,11 @@ export default function App() {
         };
         setDocumentAnalyses(prev => [newDocAnalysis, ...prev]);
       }
-    } catch (error) {
+      toast.success(language === 'en' ? 'Analysis completed successfully!' : 'تم الانتهاء من التحليل بنجاح!', { id: toastId });
+    } catch (error: any) {
       console.error("Analysis failed", error);
+      const errorMessage = error?.message || (language === 'en' ? 'Analysis failed. Please try again.' : 'فشل التحليل. يرجى المحاولة مرة أخرى.');
+      toast.error(errorMessage, { id: toastId });
     } finally {
       setIsAnalyzing(false);
     }

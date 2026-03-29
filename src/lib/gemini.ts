@@ -1,7 +1,13 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 const getAI = () => {
-  const apiKey = process.env.GEMINI_API_KEY || "";
+  // Vite's define will replace the exact string 'process.env.GEMINI_API_KEY'
+  const apiKey = process.env.GEMINI_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error("Gemini API Key is missing. Please set GEMINI_API_KEY in your environment variables.");
+  }
+  
   return new GoogleGenAI({ apiKey });
 };
 
@@ -288,83 +294,96 @@ export async function performAnalysis(
   language: 'ar' | 'en',
   extra?: { projectName?: string; projectGoal?: string; constraints?: string; methodology?: string }
 ): Promise<AnalysisResult> {
-  let prompt = `Act as a world-class Quality and Management Consultant. Analyze the following problem using the ${tool.toUpperCase()} tool. 
-  Input: ${input}
-  Language: ${language === 'ar' ? 'Arabic' : 'English'}
-  ${extra?.projectName ? `Project Name: ${extra.projectName}` : ''}
-  ${extra?.projectGoal ? `Project Goal: ${extra.projectGoal}` : ''}
-  ${extra?.constraints ? `Constraints: ${extra.constraints}` : ''}
-  ${extra?.methodology ? `Preferred Methodology: ${extra.methodology}` : ''}
-
-  CRITICAL: Output ALL fields (title, summary, data fields, recommendations, insights, etc.) strictly in the specified language (${language === 'ar' ? 'Arabic' : 'English'}).
-
-  CRITICAL: For each element of the analysis (each category in Fishbone, each row in FMEA, each phase in DMAIC/PDCA, each section in SWOT, each level in 5-Why), provide a "deepAnalysis" object.
-  The "deepAnalysis" MUST contain:
-  - "content": A very detailed, professional, and deep explanation of this specific part of the analysis. Use industry-standard terminology.
-  - "expertOpinion": Your professional expert opinion on this specific part of the analysis, focusing on the root causes and implications.
-  - "proposedSolution": A concrete, actionable, and specific proposed solution or mitigation strategy for the issues identified in this part.
-  - "summary": (Mandatory) Provide a concise, high-level summary of the findings and key takeaways for this specific part of the analysis.
-
-  The analysis must be extremely detailed, specific to the user's problem, and provide deep strategic value.
-  `;
-
-  if (tool === 'document_analysis') {
-    prompt = `Act as a world-class Business and Strategy Analyst. Analyze the following document content comprehensively and accurately.
-    
-    Document Content: ${input}
+  try {
+    let prompt = `Act as a world-class Quality and Management Consultant. Analyze the following problem using the ${tool.toUpperCase()} tool. 
+    Input: ${input}
     Language: ${language === 'ar' ? 'Arabic' : 'English'}
+    ${extra?.projectName ? `Project Name: ${extra.projectName}` : ''}
+    ${extra?.projectGoal ? `Project Goal: ${extra.projectGoal}` : ''}
+    ${extra?.constraints ? `Constraints: ${extra.constraints}` : ''}
+    ${extra?.methodology ? `Preferred Methodology: ${extra.methodology}` : ''}
 
-    CRITICAL: Output ALL fields (summary, key points, AI opinions, solutions, etc.) strictly in the specified language (${language === 'ar' ? 'Arabic' : 'English'}).
+    CRITICAL: Output ALL fields (title, summary, data fields, recommendations, insights, etc.) strictly in the specified language (${language === 'ar' ? 'Arabic' : 'English'}).
 
-    Your task:
-    1. Provide a comprehensive and detailed summary of the document.
-    2. Extract the most important key points.
-    3. For EACH key point:
-       - Provide a deep, professional AI opinion and analysis.
-       - Provide a specific proposed solution or recommendation.
-       - Provide a concise summary of the findings for this specific point.
-    4. Assign an importance level (high, medium, low) to each point.
+    CRITICAL: For each element of the analysis (each category in Fishbone, each row in FMEA, each phase in DMAIC/PDCA, each section in SWOT, each level in 5-Why), provide a "deepAnalysis" object.
+    The "deepAnalysis" MUST contain:
+    - "content": A very detailed, professional, and deep explanation of this specific part of the analysis. Use industry-standard terminology.
+    - "expertOpinion": Your professional expert opinion on this specific part of the analysis, focusing on the root causes and implications.
+    - "proposedSolution": A concrete, actionable, and specific proposed solution or mitigation strategy for the issues identified in this part.
+    - "summary": (Mandatory) Provide a concise, high-level summary of the findings and key takeaways for this specific part of the analysis.
 
-    The analysis must be thorough, accurate, and provide high-value insights specific to the document's context.`;
-  }
+    The analysis must be extremely detailed, specific to the user's problem, and provide deep strategic value.
+    `;
 
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          title: { type: Type.STRING },
-          summary: { type: Type.STRING },
-          data: SCHEMAS[tool],
-          recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
-          insights: {
-            type: Type.ARRAY,
-            items: {
-              type: Type.OBJECT,
-              properties: {
-                kpi: { type: Type.STRING },
-                value: { type: Type.STRING },
-                trend: { type: Type.STRING, enum: ["up", "down", "neutral"] }
-              },
-              required: ["kpi", "value", "trend"]
-            }
-          }
-        },
-        required: ["title", "summary", "data", "recommendations", "insights"]
-      }
+    if (tool === 'document_analysis') {
+      prompt = `Act as a world-class Business and Strategy Analyst. Analyze the following document content comprehensively and accurately.
+      
+      Document Content: ${input}
+      Language: ${language === 'ar' ? 'Arabic' : 'English'}
+
+      CRITICAL: Output ALL fields (summary, key points, AI opinions, solutions, etc.) strictly in the specified language (${language === 'ar' ? 'Arabic' : 'English'}).
+
+      Your task:
+      1. Provide a comprehensive and detailed summary of the document.
+      2. Extract the most important key points.
+      3. For EACH key point:
+         - Provide a deep, professional AI opinion and analysis.
+         - Provide a specific proposed solution or recommendation.
+         - Provide a concise summary of the findings for this specific point.
+      4. Assign an importance level (high, medium, low) to each point.
+
+      The analysis must be thorough, accurate, and provide high-value insights specific to the document's context.`;
     }
-  });
 
-  const result = JSON.parse(response.text || "{}");
-  return {
-    tool,
-    ...result,
-    documentAnalysis: tool === 'document_analysis' ? result.data : undefined
-  };
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-pro-preview",
+      contents: prompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            title: { type: Type.STRING },
+            summary: { type: Type.STRING },
+            data: SCHEMAS[tool],
+            recommendations: { type: Type.ARRAY, items: { type: Type.STRING } },
+            insights: {
+              type: Type.ARRAY,
+              items: {
+                type: Type.OBJECT,
+                properties: {
+                  kpi: { type: Type.STRING },
+                  value: { type: Type.STRING },
+                  trend: { type: Type.STRING, enum: ["up", "down", "neutral"] }
+                },
+                required: ["kpi", "value", "trend"]
+              }
+            }
+          },
+          required: ["title", "summary", "data", "recommendations", "insights"]
+        }
+      }
+    });
+
+    const text = response.text;
+    if (!text) {
+      throw new Error("The AI model returned an empty response. Please try again.");
+    }
+
+    const result = JSON.parse(text);
+    return {
+      tool,
+      ...result,
+      documentAnalysis: tool === 'document_analysis' ? result.data : undefined
+    };
+  } catch (error: any) {
+    console.error("Error in performAnalysis:", error);
+    if (error?.message?.includes("API Key")) {
+      throw new Error("Gemini API Key is invalid or missing. Please check your environment variables.");
+    }
+    throw new Error(`Analysis failed: ${error?.message || "Unknown error"}`);
+  }
 }
 
 export async function generateImage(prompt: string): Promise<string | null> {
@@ -434,7 +453,7 @@ export async function generatePresentationContent(
   try {
     const ai = getAI();
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3.1-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -476,19 +495,24 @@ export async function generatePresentationContent(
   }
 }
 export async function enhanceProblemStatement(input: string, language: 'ar' | 'en'): Promise<string> {
-  const prompt = `Act as a world-class Quality and Management Consultant. 
-  The user has provided a basic problem statement. Your task is to enhance it, making it more professional, detailed, and structured (e.g., including context, impact, and specific details if possible).
-  
-  Original Input: ${input}
-  Language: ${language === 'ar' ? 'Arabic' : 'English'}
-  
-  CRITICAL: Return ONLY the enhanced text strictly in the specified language (${language === 'ar' ? 'Arabic' : 'English'}). Do not include any introductory or concluding remarks.`;
+  try {
+    const prompt = `Act as a world-class Quality and Management Consultant. 
+    The user has provided a basic problem statement. Your task is to enhance it, making it more professional, detailed, and structured (e.g., including context, impact, and specific details if possible).
+    
+    Original Input: ${input}
+    Language: ${language === 'ar' ? 'Arabic' : 'English'}
+    
+    CRITICAL: Return ONLY the enhanced text strictly in the specified language (${language === 'ar' ? 'Arabic' : 'English'}). Do not include any introductory or concluding remarks.`;
 
-  const ai = getAI();
-  const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
-    contents: prompt,
-  });
+    const ai = getAI();
+    const response = await ai.models.generateContent({
+      model: "gemini-3-flash-preview",
+      contents: prompt,
+    });
 
-  return response.text || input;
+    return response.text || input;
+  } catch (error) {
+    console.error("Error in enhanceProblemStatement:", error);
+    return input;
+  }
 }
