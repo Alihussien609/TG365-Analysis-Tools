@@ -252,6 +252,7 @@ const Navbar: React.FC<NavbarProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const isRTL = language === 'ar';
+  const isApiKeyConfigured = !!process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY !== '';
 
   const navLinks = [
     { id: 'home', label: language === 'en' ? 'Home' : 'الرئيسية' },
@@ -266,16 +267,36 @@ const Navbar: React.FC<NavbarProps> = ({
     )}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          <div 
-            className="flex items-center gap-2 cursor-pointer group"
-            onClick={() => setActiveTab('home')}
-          >
-            <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-blue-900/20 group-hover:rotate-6 transition-transform">
-              <BrainCircuit className="text-white w-6 h-6" />
+          <div className="flex items-center gap-4">
+            <div 
+              className="flex items-center gap-2 cursor-pointer group"
+              onClick={() => setActiveTab('home')}
+            >
+              <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-blue-200 dark:shadow-blue-900/20 group-hover:rotate-6 transition-transform">
+                <BrainCircuit className="text-white w-6 h-6" />
+              </div>
+              <span className={cn("text-xl font-bold tracking-tight", theme === 'dark' ? "text-white" : "text-slate-800")}>
+                TG365
+              </span>
             </div>
-            <span className={cn("text-xl font-bold tracking-tight", theme === 'dark' ? "text-white" : "text-slate-800")}>
-              TG365
-            </span>
+
+            <div className="hidden sm:flex items-center">
+              {!isApiKeyConfigured ? (
+                <div className="flex items-center gap-2 px-3 py-1 bg-red-500/10 border border-red-500/20 rounded-full">
+                  <AlertTriangle className="w-3 h-3 text-red-500" />
+                  <span className="text-[10px] font-bold text-red-500 uppercase tracking-wider">
+                    {language === 'en' ? 'API Key Missing' : 'مفتاح API مفقود'}
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2 px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full">
+                  <CheckCircle2 className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] font-bold text-green-500 uppercase tracking-wider">
+                    {language === 'en' ? 'System Ready' : 'النظام جاهز'}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="hidden md:flex items-center gap-8">

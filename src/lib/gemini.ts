@@ -4,8 +4,8 @@ const getAI = () => {
   // Vite's define will replace the exact string 'process.env.GEMINI_API_KEY'
   const apiKey = process.env.GEMINI_API_KEY;
   
-  if (!apiKey) {
-    throw new Error("Gemini API Key is missing. Please set GEMINI_API_KEY in your environment variables.");
+  if (!apiKey || apiKey === '') {
+    throw new Error("Gemini API Key is missing. If you are on Vercel, please add GEMINI_API_KEY to your Project Environment Variables.");
   }
   
   return new GoogleGenAI({ apiKey });
