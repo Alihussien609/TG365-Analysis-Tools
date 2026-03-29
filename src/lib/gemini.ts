@@ -1,7 +1,7 @@
 import { GoogleGenAI, Type } from "@google/genai";
 
 const getAI = () => {
-  const apiKey = (typeof window !== 'undefined' ? localStorage.getItem('GEMINI_API_KEY') : null) || process.env.GEMINI_API_KEY || "";
+  const apiKey = process.env.GEMINI_API_KEY || "";
   return new GoogleGenAI({ apiKey });
 };
 

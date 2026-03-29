@@ -576,17 +576,14 @@ export default function App() {
     constraints: localStorage.getItem('PROJECT_CONSTRAINTS') || '',
     methodology: localStorage.getItem('PROJECT_METHODOLOGY') || ''
   });
-  const [tempApiKey, setTempApiKey] = useState(localStorage.getItem('GEMINI_API_KEY') || '');
   const [tempSettings, setTempSettings] = useState(projectSettings);
 
   const openSettings = () => {
-    setTempApiKey(localStorage.getItem('GEMINI_API_KEY') || '');
     setTempSettings(projectSettings);
     setIsSettingsOpen(true);
   };
 
   const saveSettings = () => {
-    localStorage.setItem('GEMINI_API_KEY', tempApiKey);
     localStorage.setItem('PROJECT_NAME', tempSettings.projectName);
     localStorage.setItem('PROJECT_GOAL', tempSettings.projectGoal);
     localStorage.setItem('PROJECT_CONSTRAINTS', tempSettings.constraints);
@@ -612,13 +609,6 @@ export default function App() {
   }, [input, language]);
 
   const handleEnhanceProblem = async () => {
-    const apiKey = localStorage.getItem('GEMINI_API_KEY') || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      toast.error(language === 'en' ? 'Please set your Gemini API Key in Settings first' : 'يرجى تعيين مفتاح Gemini API في الإعدادات أولاً');
-      openSettings();
-      return;
-    }
-
     if (!input.trim()) return;
     setIsEnhancing(true);
     try {
@@ -676,13 +666,6 @@ export default function App() {
   });
 
   const handleAnalysis = async (tool: ToolType, fileName?: string, customInput?: string) => {
-    const apiKey = localStorage.getItem('GEMINI_API_KEY') || process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      toast.error(language === 'en' ? 'Please set your Gemini API Key in Settings first' : 'يرجى تعيين مفتاح Gemini API في الإعدادات أولاً');
-      openSettings();
-      return;
-    }
-
     const analysisInput = customInput || input;
     if (!analysisInput.trim()) return;
     setIsAnalyzing(true);
@@ -776,27 +759,6 @@ export default function App() {
 
               <div className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-4">
-                    <h4 className="text-sm font-bold text-blue-500 uppercase tracking-wider">
-                      {language === 'en' ? 'API Configuration' : 'إعدادات API'}
-                    </h4>
-                    <div>
-                      <label className={cn("block text-xs font-medium mb-2", theme === 'dark' ? "text-slate-300" : "text-slate-700")}>
-                        {language === 'en' ? 'Gemini API Key' : 'مفتاح Gemini API'}
-                      </label>
-                      <input
-                        type="password"
-                        value={tempApiKey}
-                        onChange={(e) => setTempApiKey(e.target.value)}
-                        placeholder={language === 'en' ? 'Enter your API key' : 'أدخل مفتاح API الخاص بك'}
-                        className={cn(
-                          "w-full px-4 py-2 rounded-xl border focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm",
-                          theme === 'dark' ? "bg-slate-800 border-slate-700 text-white" : "bg-white border-slate-200 text-slate-900"
-                        )}
-                      />
-                    </div>
-                  </div>
-
                   <div className="space-y-4">
                     <h4 className="text-sm font-bold text-blue-500 uppercase tracking-wider">
                       {language === 'en' ? 'Project Context' : 'سياق المشروع'}
